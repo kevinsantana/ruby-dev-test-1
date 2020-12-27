@@ -1,0 +1,91 @@
+-- -----------------------------------------------------
+-- DROP TABLES
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS public."DOMINIO_CONTEUDO";
+DROP TABLE IF EXISTS public."ARQUIVO";
+DROP TABLE IF EXISTS public."SUB_PASTA";
+DROP TABLE IF EXISTS public."PASTA_RAIZ";
+DROP TABLE IF EXISTS public."HIERARQUIA_FILESYSTEM";
+
+
+-- -----------------------------------------------------
+-- Table "DOMINIO_CONTEUDO"
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS public."DOMINIO_CONTEUDO" (
+  "ID_DOMINIO_CONTEUDO" INT NOT NULL,
+  "TIPO_CONTEUDO" VARCHAR(20) NOT NULL UNIQUE,
+  PRIMARY KEY ("ID_DOMINIO_CONTEUDO"))
+;
+
+
+-- -----------------------------------------------------
+-- Table "ARQUIVO"
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS public."ARQUIVO" (
+  "ID_ARQUIVO" INT NOT NULL,
+  "NOME_ARQUIVO" VARCHAR(100) NOT NULL UNIQUE,
+  "TIPO_ARQUIVO" VARCHAR(30) NOT NULL,
+  "DATA_CRIACAO" TIMESTAMP NOT NULL,
+  "ID_DOMINIO_CONTEUDO" INT NOT NULL,
+  "DATA_ATUALIZACAO" TIMESTAMP NULL,
+  "BINARIO" BYTEA NULL,
+  PRIMARY KEY ("ID_ARQUIVO"),
+  CONSTRAINT "FK_DOMINIO_CONTEUDO"
+    FOREIGN KEY ("ID_DOMINIO_CONTEUDO")
+    REFERENCES public."DOMINIO_CONTEUDO" ("ID_DOMINIO_CONTEUDO")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;
+CREATE INDEX "NOME_ARQUIVO_INDEX" ON public."ARQUIVO" ("NOME_ARQUIVO");
+
+
+-- -----------------------------------------------------
+-- Table "SUB_PASTA"
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS public."SUB_PASTA" (
+  "ID_SUB_PASTA" INT NOT NULL,
+  "LOCAL_ABSOLUTO" VARCHAR(200) NOT NULL UNIQUE,
+  "DATA_CRIACAO" TIMESTAMP NOT NULL,
+  "DATA_ATUALIZACAO" TIMESTAMP NULL,
+  PRIMARY KEY ("ID_SUB_PASTA"))
+;
+
+
+-- -----------------------------------------------------
+-- Table "PASTA_RAIZ"
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS public."PASTA_RAIZ" (
+  "ID_PASTA_RAIZ" INT NOT NULL,
+  "LOCAL_ABSOLUTO" VARCHAR(200) NOT NULL,
+  "DATA_CRIACAO" TIMESTAMP NOT NULL,
+  "ID_SUB_PASTA" INT NULL,
+  "DATA_ATUALIZACAO" TIMESTAMP NULL,
+  PRIMARY KEY ("ID_PASTA_RAIZ"),
+  CONSTRAINT "FK_SUB_PASTA"
+    FOREIGN KEY ("ID_SUB_PASTA")
+    REFERENCES public."SUB_PASTA" ("ID_SUB_PASTA")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+;
+
+
+-- -----------------------------------------------------
+-- Table "HIERARQUIA_FILESYSTEM"
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS public."HIERARQUIA_FILESYSTEM" (
+  "ID_HIERARQUIA_FILESYSTEM" INT NOT NULL,
+  "ID_ARQUIVO" INT NOT NULL,
+  "ID_PASTA_RAIZ" INT NOT NULL,
+  PRIMARY KEY ("ID_HIERARQUIA_FILESYSTEM"),
+  CONSTRAINT "FK_SUB_PASTA_ARQUIVO"
+    FOREIGN KEY ("ID_ARQUIVO")
+    REFERENCES public."ARQUIVO" ("ID_ARQUIVO")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT "FK_PASTA_RAIZ"
+    FOREIGN KEY ("ID_PASTA_RAIZ")
+    REFERENCES public."PASTA_RAIZ" ("ID_PASTA_RAIZ")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+;
+
